@@ -1,0 +1,64 @@
+package com.pe.ripley.validacioncompracoco.drl;
+
+import com.pe.ripley.validacioncompracoco.model.CompraCoCoInput;
+import com.pe.ripley.validacioncompracoco.model.CompraCoCoOuput;
+
+global java.lang.String varTipoMatriz;
+global java.lang.String varfechaVacia;
+
+rule "Compra CoCo Response"
+
+    dialect "mvel"
+    ruleflow-group "compraCoCoResponse"
+    no-loop true
+    
+    when
+       request : CompraCoCoInput()
+       response : CompraCoCoOuput()
+       
+    then
+       
+        System.out.println("TipoOperacion : [" + request.getTipoOperacion() + "]");
+        
+        // VAIDACION RULE: Max Amount for COCO
+        if(request.getTipoOperacion() == "MAX_AMOUNT"){
+        
+            if(request.getCanal() == "PASARELA" || request.getCanal() == "WEB_COCO"){
+            
+                if(request.getMontoOuput() == 0){
+                
+                    response.setMonto(request.getMontoMaximo());
+                }else{
+                    response.setMonto(request.getMontoOuput());   
+                }
+            }
+            
+        }
+        
+        response.setFlagContinuaFlujo(request.getFlagContinuaFlujoOuput());
+        response.setFlagUltimoIntento(request.getFlagUltimoIntentoOuput());
+        response.setCanalNotificacion(request.getCanalNotificacionOuput());
+        response.setVigenciaCoCo(request.getVigenciaCoCoOuput());
+        
+        if(request.getFlagContinuaFlujoOuput() == null && response.getMonto() == null){
+            response.setEstado("No cumple ninguna regla");
+        }else{
+            response.setEstado("OK");
+        }
+        
+        if(varfechaVacia == "VACIO"){
+            response.setEstado("El campo [periodoGeneracion] esta vacio!!!");
+        }
+        
+        System.out.println("FlagContinuaFLujo : [" + response.getFlagContinuaFlujo() + "]");
+        System.out.println("Estado : [" + response.getEstado() + "]");
+        System.out.println("Rule fired : [" + drools.getRule().getName() + "]");
+        
+        delete(request);
+        delete(response);
+        drools.getKnowledgeRuntime().setGlobal("varTipoMatriz","");
+        drools.getKnowledgeRuntime().setGlobal("varfechaVacia","");
+
+
+end
+

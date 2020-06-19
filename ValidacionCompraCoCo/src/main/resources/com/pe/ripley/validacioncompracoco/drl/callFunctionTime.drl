@@ -1,0 +1,98 @@
+package com.pe.ripley.validacioncompracoco.drl;
+
+import com.pe.ripley.validacioncompracoco.model.CompraCoCoInput;
+
+import java.util.Date;
+import java.util.Calendar;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+
+import java.lang.Math;
+global java.lang.String varfechaVacia;
+  
+rule "Call function"
+    
+    dialect "mvel"
+    ruleflow-group "compracallfunction"
+    no-loop true
+    
+    when
+        tc:CompraCoCoInput()
+    then
+     
+     if(tc.periodoGeneracion == null || tc.periodoGeneracion == ""){
+         drools.getKnowledgeRuntime().setGlobal("varfechaVacia","VACIO");
+     }else{
+             
+            System.out.println("Hora Request: " + tc.periodoGeneracion);
+            
+            Timestamp  ts = Timestamp.valueOf(tc.periodoGeneracion);
+            
+            long miliseg = System.currentTimeMillis();
+            Timestamp timestamp = new Timestamp(miliseg);
+            
+            //Convertir a String
+            String fechaToday = String.valueOf(timestamp);
+            String fechaParameter = String.valueOf(ts);
+            
+            System.out.println("Hora Actual: " + fechaToday);
+                
+            //PARSEO STRING A DATE
+            SimpleDateFormat sdf= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    
+            Date dinicio = sdf.parse(fechaParameter);
+            Date dfinal = sdf.parse(fechaToday);
+            
+            //INSTANCIA DEL CALENDARIO GREGORIANO
+            Calendar cinicio = Calendar.getInstance();
+            Calendar cfinal = Calendar.getInstance();
+        
+            cinicio.setTime(dinicio);
+            cfinal.setTime(dfinal);
+            
+            long milis1 = cinicio.getTimeInMillis();
+            System.out.println("milis1: " + milis1);
+        
+            long milis2 = cfinal.getTimeInMillis();
+            System.out.println("milis2: " + milis2);
+        
+            // --------------- Calculo de fechas ------------------
+            int diff = (int)(milis2-milis1);
+        
+            System.out.println("diff [milis1 - milis2]: " + diff);
+            // calcular la diferencia en segundos
+            int diffSegundos =  diff/1000;
+            
+            System.out.println("diffSegundos: " + diffSegundos);
+        
+            // calcular la diferencia en minutos
+            int diffMinutos =  diff/(60 * 1000);
+            System.out.println("diffMinutos: " + diffMinutos);
+        
+            int restominutos = diffMinutos%60;
+            System.out.println("restominutos: " + restominutos);
+           
+           // calcular la diferencia en horas
+            int diffHoras = (diff/(60 * 60 * 1000));
+        
+            // calcular la diferencia en dias
+            int diffdias =  diff / (24 * 60 * 60 * 1000) ;
+        
+            System.out.println("En segundos: " + diffSegundos + " segundos.");
+        
+            System.out.println("En minutos: " + diffMinutos + " minutos.");
+        
+            System.out.println("En horas: " + diffHoras + " horas.");
+        
+            System.out.println("En dias: " + diffdias + " dias.");
+        
+            String devolver = String.valueOf(diffHoras + " H " + restominutos + " m ");
+            
+            System.out.println("Diferencia: " + devolver);
+            
+            tc.setMaximoPeriodo(diffMinutos);
+            
+            update(tc);
+     }
+        
+end

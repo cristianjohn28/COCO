@@ -1,0 +1,31 @@
+package com.pe.ripley.validacioncompracoco.drl;
+
+import com.pe.ripley.validacioncompracoco.model.CompraCoCoInput;
+
+global java.lang.String varTipoMatriz;
+
+rule "Inicializando valores"
+
+
+    dialect "mvel"
+    ruleflow-group "compraCoCoInicial"
+    no-loop true
+    
+    when
+        request : CompraCoCoInput()
+        
+    then
+        
+        if(request.getTipoOperacion() == "ETNV" || request.getTipoOperacion() == "PHONE_OTP" || request.getTipoOperacion() == "EMAIL_OTP" || 
+            request.getTipoOperacion() == "REGE_NUMBER_COCO" || request.getTipoOperacion() == "CHALLENGE_VALIDATION" ){
+            drools.getKnowledgeRuntime().setGlobal("varTipoMatriz","01");
+        }else if(request.getTipoOperacion() == "MAX_AMOUNT"){
+            drools.getKnowledgeRuntime().setGlobal("varTipoMatriz","02");
+        }else if(request.getTipoOperacion() == "REGE_TIME_COCO"){
+            drools.getKnowledgeRuntime().setGlobal("varTipoMatriz","03");
+        }
+        
+        System.out.println("Rule fired : [" + drools.getRule().getName() + "]");
+
+end
+
